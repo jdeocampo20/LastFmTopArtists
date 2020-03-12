@@ -1,0 +1,119 @@
+@import './paginator.css';
+
+:root {
+    --bg_main: #e3e3e3;
+    --bg_card: #ddd;
+    --text_light: #e3e3e3;
+    --text_med: #53627c;
+    --text_dark: #1e2432;
+    --hover: #ddd;
+    --card-shadow: 5px 5px 10px -5px #888888;
+}
+
+/* css reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-weight: normal;
+}
+
+body {
+    /* font-family: Arial, Helvetica, sans-serif; */
+    font-family: 'Open Sans', sans-serif;
+    height: 100vh;
+}
+
+.container {
+    display: grid;
+    grid-template-areas:
+        '.. top ..'
+        '.. artists ..';
+    height: 100%;
+    grid-template-rows: 50px auto;
+    grid-template-columns: 200px auto 200px;
+}
+
+.container > * {
+    padding: 16px;
+}
+
+.top {
+    grid-area: top;
+    display: grid;
+    grid-template-areas: '.. search ..';
+}
+
+#title {
+    grid-area: title;
+    text-align: center;
+    color: var(--text_dark);
+    margin-bottom: 32px;
+}
+
+#search-form {
+    grid-area: search;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+}
+
+#search-button {
+    border-radius: 5px;
+    padding: 2px;
+    font-size: medium;
+}
+
+#search-input {
+    border-radius: 5px;
+    padding: 2px;
+    width: 100%;
+    margin-right: 8px;
+    font-size: medium;
+}
+
+#top-artists-container {
+    grid-area: artists;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    flex-direction: column;
+}
+
+#top-artists-list {
+    list-style: none;
+}
+
+#top-artists-list li {
+    margin-bottom: 16px;
+}
+
+.card {
+    border-radius: 5px;
+    padding: 16px;
+    background-color: var(--bg_card);
+    color: var(--text_dark);
+}
+
+.artist-details-card {
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    color: var(--text_dark); 
+    align-items: center;
+}
+
+.artist-details {
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    flex-direction: column;
+}
+
+.artist-rank {
+    width: 72px;
+}
+
+.artist-image {
+    margin-left: auto;
+}
