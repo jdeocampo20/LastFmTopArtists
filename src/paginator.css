@@ -1,5 +1,8 @@
 #paginator {
     align-self: center;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
 }
 
 #paginator button {
@@ -9,12 +12,14 @@
     border: 1px solid #ddd;
 }
 
-#paginator span {
+#current-page {
     background-color: var(--bg-card);
     padding: 8px 16px;
+    width: 72px;
+    text-align: center
 }
 
-prev-button{
+#prev-button{
     border-top-left-radius: 5px;
     border-bottom-left-radius: 5px;
 }

@@ -8,6 +8,7 @@
     --text_dark: #1e2432;
     --hover: #ddd;
     --card-shadow: 5px 5px 10px -5px #888888;
+    --border-radius-rounded: 10px;
 }
 
 /* css reset */
@@ -89,7 +90,7 @@ body {
 }
 
 .card {
-    border-radius: 5px;
+    border-radius: var(--border-radius-rounded);
     padding: 16px;
     background-color: var(--bg_card);
     color: var(--text_dark);
@@ -116,4 +117,5 @@ body {
 
 .artist-image {
     margin-left: auto;
+    border-radius: var(--border-radius-rounded);
 }
