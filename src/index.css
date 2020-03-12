@@ -2,12 +2,13 @@
 
 :root {
     --bg_main: #e3e3e3;
-    --bg_card: #ddd;
+    --bg_card: rgba(247, 78, 64, 0.1);
+    --bg_nav: #000;
     --text_light: #e3e3e3;
     --text_med: #53627c;
     --text_dark: #1e2432;
+    --text_brand: #c20d00;
     --hover: #ddd;
-    --card-shadow: 5px 5px 10px -5px #888888;
     --border-radius-rounded: 10px;
 }
 
@@ -20,102 +21,50 @@
 }
 
 body {
-    /* font-family: Arial, Helvetica, sans-serif; */
     font-family: 'Open Sans', sans-serif;
-    height: 100vh;
-}
-
-.container {
+    /* height: 100vh; */
+    display: -moz-grid;
+    display: -ms-grid;
     display: grid;
-    grid-template-areas:
-        '.. top ..'
-        '.. artists ..';
-    height: 100%;
+    grid-template-areas: 
+        'nav nav nav'
+        '.. container ..';
     grid-template-rows: 50px auto;
     grid-template-columns: 200px auto 200px;
 }
 
-.container > * {
-    padding: 16px;
-}
-
-.top {
-    grid-area: top;
+#nav {
+    grid-area: nav;
+    display: -moz-grid;
+    display: -ms-grid;
     display: grid;
-    grid-template-areas: '.. search ..';
+    grid-template-areas:
+        '.. .. .. nav-brand .. .. ..';
+    padding: 8px;
+    background-color: var(--bg_nav);
 }
 
-#title {
-    grid-area: title;
+#nav-brand {
+    grid-area: nav-brand;
+    color: var(--text_brand);
+    font-weight: bolder;
     text-align: center;
-    color: var(--text_dark);
-    margin-bottom: 32px;
+    text-decoration: none;
 }
 
-#search-form {
-    grid-area: search;
-    display: -webkit-flex;
-    display: -ms-flexbox;
-    display: flex;
+#container {
+    grid-area: container;
+    height: 100%;
 }
 
-#search-button {
-    border-radius: 5px;
-    padding: 2px;
-    font-size: medium;
-}
+@media screen and (max-width: 992px) {
+    body {
+        grid-template-areas: 
+            'nav nav nav'
+            'container container container';
+    }
 
-#search-input {
-    border-radius: 5px;
-    padding: 2px;
-    width: 100%;
-    margin-right: 8px;
-    font-size: medium;
-}
-
-#top-artists-container {
-    grid-area: artists;
-    display: -webkit-flex;
-    display: -ms-flexbox;
-    display: flex;
-    flex-direction: column;
-}
-
-#top-artists-list {
-    list-style: none;
-}
-
-#top-artists-list li {
-    margin-bottom: 16px;
-}
-
-.card {
-    border-radius: var(--border-radius-rounded);
-    padding: 16px;
-    background-color: var(--bg_card);
-    color: var(--text_dark);
-}
-
-.artist-details-card {
-    display: -webkit-flex;
-    display: -ms-flexbox;
-    display: flex;
-    color: var(--text_dark); 
-    align-items: center;
-}
-
-.artist-details {
-    display: -webkit-flex;
-    display: -ms-flexbox;
-    display: flex;
-    flex-direction: column;
-}
-
-.artist-rank {
-    width: 72px;
-}
-
-.artist-image {
-    margin-left: auto;
-    border-radius: var(--border-radius-rounded);
+    #container {
+        margin: 0px 16px;
+    }
 }
