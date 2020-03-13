@@ -1,4 +1,4 @@
-import { ApiKey, PageSize } from '/src/utils/constants.js';
+import { ApiKey, PageSize } from '/utils/constants.js';
 
 let topTracksList;
 let totalTrackList;
