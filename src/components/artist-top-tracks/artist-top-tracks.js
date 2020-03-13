@@ -56,13 +56,10 @@ async function getTopTracks(mbid, selectedPage) {
     try {
         let data;
         if (!tracks) {
-            if (mbid === 'a74b1b7f-71a5-4011-9441-d0b5e4122711')
-                data = await fetch('./toptracks.json');
             // Get top 50 tracks
-            else
-                data = await fetch(
-                    `https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&mbid=${mbid}&api_key=${ApiKey}&format=json`
-                );
+            data = await fetch(
+                `https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&mbid=${mbid}&api_key=${ApiKey}&format=json`
+            );
 
             const jsonData = await data.json();
             tracks = jsonData.toptracks.track;
