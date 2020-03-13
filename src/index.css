@@ -1,14 +1,13 @@
 @import './paginator.css';
 
 :root {
-    --bg_main: #e3e3e3;
     --bg_card: rgba(247, 78, 64, 0.1);
     --bg_nav: #000;
+    --bg_button: white;
+    --border_button: #f03e3e;
     --text_light: #e3e3e3;
-    --text_med: #53627c;
     --text_dark: #1e2432;
     --text_brand: #c20d00;
-    --hover: #ddd;
     --border-radius-rounded: 10px;
 }
 
@@ -22,7 +21,6 @@
 
 body {
     font-family: 'Open Sans', sans-serif;
-    /* height: 100vh; */
     display: -moz-grid;
     display: -ms-grid;
     display: grid;
@@ -55,6 +53,14 @@ body {
 #container {
     grid-area: container;
     height: 100%;
+}
+
+button, input[type=button] {
+    border: 1px solid var(--border_button);
+    background-color: var(--bg_button);
+    -webkit-transition: none;
+    -moz-transition: none;
+    transition: none;
 }
 
 @media screen and (max-width: 992px) {
