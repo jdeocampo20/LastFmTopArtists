@@ -2,8 +2,11 @@
 
 import { ApiKey, PageSize } from '/src/utils/constants.js';
 
-let topArtistsList;
+let topArtistsListElements;
 let countryTitle;
+let limit;
+let totalArtistsCount;
+let topArtistsList;
 
 let prevButton;
 let nextButton;
@@ -41,7 +44,13 @@ function setCountryTitle() {
     countryTitle.innerText = currentCountry;
 }
 
-function addOnClickListener(artistListItem, artistMbid, artistName, artistImageUrl, artistListeners) {
+function addOnClickListener(
+    artistListItem,
+    artistMbid,
+    artistName,
+    artistImageUrl,
+    artistListeners
+) {
     const artistDetails = {
         mbid: artistMbid,
         name: artistName,
@@ -50,7 +59,11 @@ function addOnClickListener(artistListItem, artistMbid, artistName, artistImageU
     };
     artistListItem.addEventListener('click', () => {
         sessionStorage.setItem('selectedArtist', JSON.stringify(artistDetails));
-    })
+    });
+}
+
+function setTotalArtistCount(attr) {
+    totalArtistsCount = attr.total;
 }
 
 // get the data from the json file
@@ -61,36 +74,45 @@ async function getArtists(country, selectedPage) {
         sessionStorage.setItem('selectedCountry', JSON.stringify(country));
 
         let data;
-        let jsonData;
 
-        //check session storage
-        const sessionStorageKey = `${country}-${selectedPage}`;
-        if (sessionStorage.getItem(sessionStorageKey)) {
-            jsonData = JSON.parse(sessionStorage.getItem(sessionStorageKey));
-        } else {
-            if (country.toLowerCase() === 'Australia'.toLocaleLowerCase())
-                data = await fetch('./data.json');
-            else
-                data = await fetch(
-                    `https://ws.audioscrobbler.com/2.0/?method=geo.gettopartists&country=${country}&api_key=${ApiKey}&format=json&limit=${PageSize}&page=${selectedPage}`
-                );
-            jsonData = await data.json();
-            sessionStorage.setItem(sessionStorageKey, JSON.stringify(jsonData));
+        if (!topArtistsList) {
+            // Get top 50 artists
+            data = await fetch(
+                `https://ws.audioscrobbler.com/2.0/?method=geo.gettopartists&country=${country}&api_key=${ApiKey}&format=json&limit=${limit}`
+            );
+
+            const jsonData = await data.json();
+            topArtistsList = jsonData.topartists.artist;
+            setTotalArtistCount(jsonData.topartists['@attr']);
         }
 
-        const artists = jsonData.topartists.artist;
+        const pageStart = PageSize * (selectedPage - 1);
+        const pageEnd = pageStart + PageSize;
+
+        // if the page is more than the data we have
+        // then request new data
+        if (pageEnd > topArtistsList.length) {
+            // fetch the next 50 results
+            const apiPage = (topArtistsList.length + limit) / 50;
+            data = await fetch(
+                `https://ws.audioscrobbler.com/2.0/?method=geo.gettopartists&country=${country}&api_key=${ApiKey}&format=json&limit=${limit}&page=${apiPage}`
+            );
+            const jsonData = await data.json();
+            topArtistsList = topArtistsList.concat(jsonData.topartists.artist);
+            setTotalArtistCount(jsonData.topartists['@attr']);
+        }
 
         // Reset the list to blank
-        topArtistsList.innerHTML = '';
+        topArtistsListElements.innerHTML = '';
 
         // Create a list item for each artists
-        for (let i = 0; i < PageSize; i++) {
+        for (let i = pageStart; i < pageEnd; i++) {
             // Get artist
-            const artist = artists[i];
+            const artist = topArtistsList[i];
             // Get the medium image
             const artistImage = artist.image[1]['#text'];
 
-            const rank = PageSize * (selectedPage - 1) + i + 1;
+            const rank = i + 1;
 
             const artistListItem = createArtistListItem(
                 artist.name,
@@ -99,17 +121,20 @@ async function getArtists(country, selectedPage) {
                 rank,
                 artist.mbid
             );
-            topArtistsList.appendChild(artistListItem);
+            topArtistsListElements.appendChild(artistListItem);
 
             // Save the large image to the storage
-            addOnClickListener(artistListItem, artist.mbid, artist.name, artist.image[2]['#text'], artist.listeners);
+            addOnClickListener(
+                artistListItem,
+                artist.mbid,
+                artist.name,
+                artist.image[2]['#text'],
+                artist.listeners
+            );
         }
 
         setCountryTitle(country);
         updatePaginator(selectedPage);
-
-        const highLevelData = jsonData.topartists['@attr'];
-        totalPages = parseInt(highLevelData.totalPages);
     } catch (e) {
         console.error(e);
     }
@@ -141,7 +166,7 @@ const Home = {
         return html;
     },
     init: async () => {
-        topArtistsList = document.getElementById('top-artists-list');
+        topArtistsListElements = document.getElementById('top-artists-list');
         countryTitle = document.getElementById('country-title');
 
         prevButton = document.getElementById('prev-button');
@@ -162,23 +187,30 @@ const Home = {
                 e.preventDefault();
                 const country = document.querySelector('[name="countryInput"]')
                     .value;
+                limit = 50;
+                topArtistsList = null;
                 getArtists(country, 1);
             });
 
         topArtistsCurrentPage = 1;
+        limit = 50;
         currentCountry = 'Australia';
         totalPages;
 
         // Check session storage for the page
         if (sessionStorage.getItem('topArtistsCurrentPage'))
-            topArtistsCurrentPage = JSON.parse(sessionStorage.getItem('topArtistsCurrentPage'));
+            topArtistsCurrentPage = JSON.parse(
+                sessionStorage.getItem('topArtistsCurrentPage')
+            );
 
         // Check session storage for the page
         if (sessionStorage.getItem('selectedCountry'))
-            currentCountry = JSON.parse(sessionStorage.getItem('selectedCountry'));
+            currentCountry = JSON.parse(
+                sessionStorage.getItem('selectedCountry')
+            );
 
         getArtists(currentCountry, topArtistsCurrentPage);
-        
+
         // Reset the page for the artists top tracks
         sessionStorage.removeItem('topTracksCurrentPage');
     }
