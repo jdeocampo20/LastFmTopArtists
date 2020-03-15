@@ -14,6 +14,7 @@ const Home = {
     topArtistsCurrentPage: null,
     currentCountry: null,
     totalPages: null,
+    searchErrorElement: null,
     constructor: async function() {
         // Get the view
         const htmlPage = await fetch('components/home/home.html');
@@ -22,12 +23,15 @@ const Home = {
         return html;
     },
     initProperties: function() {
-        this.topArtistsListElements = document.getElementById('top-artists-list');
+        this.topArtistsListElements = document.getElementById(
+            'top-artists-list'
+        );
         this.countryTitle = document.getElementById('country-title');
         this.limit = 50;
         this.prevButton = document.getElementById('prev-button');
         this.nextButton = document.getElementById('next-button');
         this.currentPageElement = document.getElementById('current-page');
+        this.searchErrorElement = document.getElementById('search-error');
 
         this.topArtistsCurrentPage = 1;
         this.currentCountry = 'Australia';
@@ -55,7 +59,7 @@ const Home = {
 
         // Check session storage for the page
         if (sessionStorage.getItem('topArtistsCurrentPage'))
-        this.topArtistsCurrentPage = JSON.parse(
+            this.topArtistsCurrentPage = JSON.parse(
                 sessionStorage.getItem('topArtistsCurrentPage')
             );
 
@@ -65,68 +69,95 @@ const Home = {
                 sessionStorage.getItem('selectedCountry')
             );
 
-            this.getArtists(this.currentCountry, this.topArtistsCurrentPage);
+        this.getArtists(this.currentCountry, this.topArtistsCurrentPage);
 
         // Reset the page for the artists top tracks
         sessionStorage.removeItem('topTracksCurrentPage');
     },
-    next: function() { this.getArtists(this.currentCountry, this.topArtistsCurrentPage + 1); },
-    prev: function() { this.getArtists(this.currentCountry, this.topArtistsCurrentPage - 1); },
+    next: function() {
+        this.getArtists(this.currentCountry, this.topArtistsCurrentPage + 1);
+    },
+    prev: function() {
+        this.getArtists(this.currentCountry, this.topArtistsCurrentPage - 1);
+    },
     updatePaginator: function(selectedPage) {
         this.topArtistsCurrentPage = selectedPage;
         this.prevButton.disabled = this.topArtistsCurrentPage === 1;
-        this.nextButton.disabled = this.topArtistsCurrentPage === this.totalPages;
+        this.nextButton.disabled =
+            this.topArtistsCurrentPage === this.totalPages;
 
         this.currentPageElement.innerText = this.topArtistsCurrentPage;
-        sessionStorage.setItem('topArtistsCurrentPage', this.topArtistsCurrentPage);
+        sessionStorage.setItem(
+            'topArtistsCurrentPage',
+            this.topArtistsCurrentPage
+        );
+    },
+    getArtistsFromApi: async function(country, pageEnd) {
+        let data;
+        let newRequestNeeded;
+
+        if (!this.topArtistsList) {
+            data = await fetch(
+                `https://ws.audioscrobbler.com/2.0/?method=geo.gettopartists&country=${country}&api_key=${ApiKey}&format=json&limit=${this.limit}`
+            );
+        } else if (pageEnd > this.topArtistsList.length) {
+            newRequestNeeded = true;
+            // if the page is more than the data we have
+            // then fetch the next 50 results
+            const apiPage = (this.topArtistsList.length + this.limit) / 50;
+            data = await fetch(
+                `https://ws.audioscrobbler.com/2.0/?method=geo.gettopartists&country=${country}&api_key=${ApiKey}&format=json&limit=${this.limit}&page=${apiPage}`
+            );
+        } 
+        // If the top artists list is populated
+        // and we don't need more data
+        // then we don't need the extra processing
+        else return;
+
+        const jsonData = await data.json();
+
+        // Check if there are api errors
+        if (jsonData.error) {
+            switch (jsonData.error) {
+                case 6:
+                    this.searchErrorElement.innerText =
+                        'Please enter a valid country';
+                    break;
+                case 11:
+                    this.searchErrorElement.innerText =
+                        'Service is temporarily offline. Please try again later.';
+                    break;
+                case 29:
+                    this.searchErrorElement.innerText =
+                        'Too many requests. Please try again later.';
+                    break;
+            }
+            throw jsonData.message;
+        }
+
+        this.searchErrorElement.innerText = '';
+        this.topArtistsList = newRequestNeeded
+            ? this.topArtistsList.concat(jsonData.topartists.artist)
+            : jsonData.topartists.artist;
+        this.setTotalArtistCount(jsonData.topartists['@attr']);
     },
     getArtists: async function(country, selectedPage) {
         try {
-            this.currentCountry = country;
-            // cache the selected country
-            sessionStorage.setItem('selectedCountry', JSON.stringify(country));
-    
-            let data;
-    
-            if (!this.topArtistsList) {
-                // Get top 50 artists
-                data = await fetch(
-                    `https://ws.audioscrobbler.com/2.0/?method=geo.gettopartists&country=${country}&api_key=${ApiKey}&format=json&limit=${this.limit}`
-                );
-    
-                const jsonData = await data.json();
-                this.topArtistsList = jsonData.topartists.artist;
-                this.setTotalArtistCount(jsonData.topartists['@attr']);
-            }
-    
             const pageStart = PageSize * (selectedPage - 1);
             const pageEnd = pageStart + PageSize;
-    
-            // if the page is more than the data we have
-            // then request new data
-            if (pageEnd > this.topArtistsList.length) {
-                // fetch the next 50 results
-                const apiPage = (this.topArtistsList.length + this.limit) / 50;
-                data = await fetch(
-                    `https://ws.audioscrobbler.com/2.0/?method=geo.gettopartists&country=${country}&api_key=${ApiKey}&format=json&limit=${this.limit}&page=${apiPage}`
-                );
-                const jsonData = await data.json();
-                this.topArtistsList = this.topArtistsList.concat(jsonData.topartists.artist);
-                this.setTotalArtistCount(jsonData.topartists['@attr']);
-            }
-    
+            await this.getArtistsFromApi(country, pageEnd);
             // Reset the list to blank
             this.topArtistsListElements.innerHTML = '';
-    
+
             // Create a list item for each artists
             for (let i = pageStart; i < pageEnd; i++) {
                 // Get artist
                 const artist = this.topArtistsList[i];
                 // Get the medium image
                 const artistImage = artist.image[1]['#text'];
-    
+
                 const rank = i + 1;
-    
+
                 const artistListItem = this.createArtistListItem(
                     artist.name,
                     artistImage,
@@ -135,7 +166,7 @@ const Home = {
                     artist.mbid
                 );
                 this.topArtistsListElements.appendChild(artistListItem);
-    
+
                 // Save the large image to the storage
                 this.addOnClickListener(
                     artistListItem,
@@ -145,7 +176,10 @@ const Home = {
                     artist.listeners
                 );
             }
-    
+
+            this.currentCountry = country;
+            // cache the selected country
+            sessionStorage.setItem('selectedCountry', JSON.stringify(country));
             this.setCountryTitle(country);
             this.updatePaginator(selectedPage);
         } catch (e) {
@@ -169,10 +203,15 @@ const Home = {
             listeners: artistListeners
         };
         artistListItem.addEventListener('click', () => {
-            sessionStorage.setItem('selectedArtist', JSON.stringify(artistDetails));
+            sessionStorage.setItem(
+                'selectedArtist',
+                JSON.stringify(artistDetails)
+            );
         });
     },
-    setCountryTitle: function() { this.countryTitle.innerText = this.currentCountry; },
+    setCountryTitle: function() {
+        this.countryTitle.innerText = this.currentCountry;
+    },
     createArtistListItem: function(
         artistName,
         artistImage,
@@ -193,7 +232,7 @@ const Home = {
                 </a>
             </div>
         `;
-    
+
         return listElement;
     }
 };

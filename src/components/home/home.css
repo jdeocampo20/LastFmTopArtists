@@ -34,7 +34,9 @@
     display: -moz-grid;
     display: -ms-grid;
     display: grid;
-    grid-template-areas: '.. .. .. search-input search-input search-input search-button .. .. ..';
+    grid-template-areas: 
+        '.. .. .. search-input search-input search-input search-button .. .. ..'
+        '.. .. .. search-error search-error search-error search-error .. .. ..';
     grid-gap: 8px;
     margin: 16px 0;
 }
@@ -53,6 +55,12 @@
     width: 100%;
     margin-right: 8px;
     font-size: medium;
+}
+
+#search-error {
+    grid-area: search-error;
+    text-align: center;
+    color: red;
 }
 
 .card {
