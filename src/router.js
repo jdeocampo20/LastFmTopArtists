@@ -3,8 +3,9 @@ import Home from './components/home/home.js';
 import ArtistTopTracks from './components/artist-top-tracks/artist-top-tracks.js';
 
 const routes = {
-    '/': Home,
-    '/artists/:id': ArtistTopTracks
+    '': Home,
+    'home': Home,
+    'artists/:id': ArtistTopTracks
 };
 
 function getRoute() {
@@ -16,7 +17,7 @@ function getRoute() {
     const resource = r[1] ? r[1] : '';
     const id = r[2] ? '/:id' : '';
 
-    return `/${resource}${id}`;
+    return `${resource}${id}`;
 }
 
 const router = async () => {
