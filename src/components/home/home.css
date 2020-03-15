@@ -96,3 +96,11 @@
 .artist-image {
     border-radius: var(--border-radius-rounded);
 }
+
+@media screen and (max-width: 992px) {
+    #search-form {
+        grid-template-areas: 
+            'search-input search-input search-input search-button'
+            'search-error search-error search-error search-error';
+    }
+}
